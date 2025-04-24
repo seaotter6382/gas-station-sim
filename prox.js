@@ -39,10 +39,13 @@ export function createProx(posX, posY, key, id) {
     miniCircle.style.width = "10px";
     miniCircle.style.height = "10px";
     miniCircle.style.borderRadius = "50%";
-    miniCircle.style.backgroundColor = "gray";
+    miniCircle.style.backgroundColor = "rgb(210, 210, 210)";
     miniCircle.style.position = "absolute";
-    miniCircle.style.top = "40px";
+    miniCircle.style.top = "42.5px";
     miniCircle.style.zIndex = "10";
+    miniCircle.style.transformOrigin = "center";
+    miniCircle.style.transform = "scale(0)";
+    miniCircle.id = "miniCircle";
     newProx.appendChild(miniCircle);
     let newText = document.createElement("p");
     newText.textContent = "test action";

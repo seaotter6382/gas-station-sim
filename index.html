@@ -46,6 +46,7 @@
             }
             let pTime = 0;
             const f = 200;
+            let size = 0;
             function gameLoop(currentTime) {
                 let deltaTime = (currentTime - pTime) / 1000;
                 pTime = currentTime;
@@ -54,8 +55,41 @@
                 if (keys[keybinds['backward']]) pos.y += e;
                 if (keys[keybinds['right']]) pos.x += e;
                 if (keys[keybinds['left']]) pos.x -= e;
-                if (keys[keybinds['use2']]) {
+                if (keys[keybinds['use']]) {
                     console.log("pressed");
+                    let closestProx = null;
+                    let closestDistance = Infinity;
+                    prox.forEach(p => {
+                        const proxCenterX = parseFloat(p.style.left) + parseFloat(p.style.width) / 2;
+                        const proxCenterY = parseFloat(p.style.top) + parseFloat(p.style.height) / 2;
+                        const playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
+                        const playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
+                        const distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestProx = p;
+                        }
+                    });
+                    if (closestProx) {
+                        console.log(closestProx);
+                        closestProx.querySelector("#miniCircle").style.transform = "scale(" + size + ")";
+                        size += e / 50;
+                        if (size > 5) {
+                            prox = prox.filter(p => p !== closestProx);
+                            if (closestProx.parentNode) {
+                                closestProx.parentNode.removeChild(closestProx);
+                            }
+                        }
+                    }
+                } else {
+                    size = 0;
+                    prox.forEach(p => {
+                        if (p.querySelector("#miniCircle")) {
+                            p.querySelector("#miniCircle").style.transform = "scale(0)";
+                        }
+                    });
+                }
+                if (keys[keybinds['use2']]) {
                     prox.push(createProx(pos.x, pos.y, keybinds['use'], "createdProx"));
                 }
                 renderProx();
