@@ -1,9 +1,18 @@
 {
+    "useArrow": "false",
     "forward": "w",
     "backward": "s",
     "left": "a",
     "right": "d",
     "use": "e",
     "use2": "f",
-    "use3": "t"
+    "use3": "t",
+    "use4": "q",
+    "use5": "r",
+    "arrow": {
+        "forward": "ArrowUp",
+        "backward": "ArrowDown",
+        "left": "ArrowLeft",
+        "right": "ArrowRight"
+    }
 }

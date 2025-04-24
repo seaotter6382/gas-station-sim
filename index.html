@@ -12,6 +12,7 @@
             import { createProx } from "./prox.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
+            let useArrowKeys = keybinds['useArrow'];
             let keys = {};
             let prox = [];
             let pos = {x: window.innerWidth / 2 - 25, y: window.innerHeight / 2 - 25};
@@ -51,10 +52,17 @@
                 let deltaTime = (currentTime - pTime) / 1000;
                 pTime = currentTime;
                 const e = f * deltaTime;
-                if (keys[keybinds['forward']]) pos.y -= e;
-                if (keys[keybinds['backward']]) pos.y += e;
-                if (keys[keybinds['right']]) pos.x += e;
-                if (keys[keybinds['left']]) pos.x -= e;
+                if (useArrowKeys == "true") {
+                    if (keys[keybinds['arrow']['forward']]) pos.y -= e;
+                    if (keys[keybinds['arrow']['backward']]) pos.y += e;
+                    if (keys[keybinds['arrow']['right']]) pos.x += e;
+                    if (keys[keybinds['arrow']['left']]) pos.x -= e;
+                } else if (useArrowKeys == "false") {
+                    if (keys[keybinds['forward']]) pos.y -= e;
+                    if (keys[keybinds['backward']]) pos.y += e;
+                    if (keys[keybinds['right']]) pos.x += e;
+                    if (keys[keybinds['left']]) pos.x -= e;
+                }
                 if (keys[keybinds['use']]) {
                     console.log("pressed");
                     let closestProx = null;
