@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <style>
+            #userPlayer { height: 50px; width: 50px; background-color: blue; position: absolute; z-index: 1; border-radius: 2px; }
+        </style>
+    </head>
+    <body>
+        <div id="userPlayer"></div>
+        <script type="module">
+            import { getKeybinds } from "./fetchKeybinds.js";
+            import { createProx } from "./prox.js";
+            document.body.appendChild(createProx(100, 100, true, "w"));
+            let keybinds = await getKeybinds();
+            console.log(keybinds);
+            let keys = {};
+            let pos = {x: window.innerWidth / 2 - 25, y: window.innerHeight / 2 - 25};
+            let speed = 2;
+            let mainPlayer = document.getElementById("userPlayer");
+            document.addEventListener("keydown", (event) => {
+                keys[event.key] = true;
+            });
+            document.addEventListener("keyup", (event) => {
+                delete keys[event.key];
+            });
+            function gameLoop() {
+                if (keys[keybinds['forward']]) pos.y -= speed;
+                if (keys[keybinds['backward']]) pos.y += speed;
+                if (keys[keybinds['right']]) pos.x += speed;
+                if (keys[keybinds['left']]) pos.x -= speed;
+                if (pos.x < 0) pos.x = 0;
+                if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
+                if (pos.y < 0) pos.y = 0;
+                if (pos.y > window.innerHeight - 50) pos.y = window.innerHeight - 50;
+                mainPlayer.style.left = pos.x + "px";
+                mainPlayer.style.top = pos.y + "px";
+                requestAnimationFrame(gameLoop);
+            }
+            gameLoop();
+        </script>
+    </body>
+</html>
