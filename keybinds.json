@@ -2,5 +2,8 @@
     "forward": "w",
     "backward": "s",
     "left": "a",
-    "right": "d"
+    "right": "d",
+    "use": "e",
+    "use2": "f",
+    "use3": "t"
 }

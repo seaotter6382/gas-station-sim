@@ -2,6 +2,7 @@
     <head>
         <style>
             #userPlayer { height: 50px; width: 50px; background-color: blue; position: absolute; z-index: 1; border-radius: 2px; }
+            .font { font-family: "monospace", sans-serif; }
         </style>
     </head>
     <body>
@@ -9,24 +10,55 @@
         <script type="module">
             import { getKeybinds } from "./fetchKeybinds.js";
             import { createProx } from "./prox.js";
-            document.body.appendChild(createProx(100, 100, true, "w"));
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let keys = {};
+            let prox = [];
             let pos = {x: window.innerWidth / 2 - 25, y: window.innerHeight / 2 - 25};
             let speed = 2;
             let mainPlayer = document.getElementById("userPlayer");
+            mainPlayer.style.width = "50px";
+            mainPlayer.style.height = "50px";
             document.addEventListener("keydown", (event) => {
                 keys[event.key] = true;
             });
             document.addEventListener("keyup", (event) => {
                 delete keys[event.key];
             });
-            function gameLoop() {
-                if (keys[keybinds['forward']]) pos.y -= speed;
-                if (keys[keybinds['backward']]) pos.y += speed;
-                if (keys[keybinds['right']]) pos.x += speed;
-                if (keys[keybinds['left']]) pos.x -= speed;
+            function renderProx() {
+                prox.forEach(p => {
+                    if (!document.getElementById(p.id)) {
+                        document.body.appendChild(p);
+                    } else {
+                        const proxCenterX = parseFloat(p.style.left) + parseFloat(p.style.width) / 2;
+                        const proxCenterY = parseFloat(p.style.top) + parseFloat(p.style.height) / 2;
+                        const playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
+                        const playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
+                        const distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
+                        console.log(distance);
+                        if (distance > 200) {
+                            p.style.opacity = 0;
+                        } else {
+                            p.style.opacity = 1;
+                        }
+                    }
+                });
+            }
+            let pTime = 0;
+            const f = 200;
+            function gameLoop(currentTime) {
+                let deltaTime = (currentTime - pTime) / 1000;
+                pTime = currentTime;
+                const e = f * deltaTime;
+                if (keys[keybinds['forward']]) pos.y -= e;
+                if (keys[keybinds['backward']]) pos.y += e;
+                if (keys[keybinds['right']]) pos.x += e;
+                if (keys[keybinds['left']]) pos.x -= e;
+                if (keys[keybinds['use2']]) {
+                    console.log("pressed");
+                    prox.push(createProx(pos.x, pos.y, keybinds['use'], "createdProx"));
+                }
+                renderProx();
                 if (pos.x < 0) pos.x = 0;
                 if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
                 if (pos.y < 0) pos.y = 0;
