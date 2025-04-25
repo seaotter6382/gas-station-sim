@@ -8,8 +8,11 @@
     <body>
         <div id="userPlayer"></div>
         <script type="module">
-            import { getKeybinds } from "./fetchKeybinds.js";
-            import { createProx } from "./prox.js";
+            import { getKeybinds } from "./lib/fetch/fetchKeybinds.js";
+            import { createProx } from "./lib/prox/createProx.js";
+            import { renderProx } from "./lib/prox/renderProx.js";
+            import { createObject } from "./lib/objects/createObject.js";
+            import { renderObjects, collide } from "./lib/objects/renderObject.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let useArrowKeys = keybinds['useArrow'];
@@ -26,24 +29,6 @@
             document.addEventListener("keyup", (event) => {
                 delete keys[event.key];
             });
-            function renderProx() {
-                prox.forEach(p => {
-                    if (!document.getElementById(p.id)) {
-                        document.body.appendChild(p);
-                    } else {
-                        const proxCenterX = parseFloat(p.style.left) + parseFloat(p.style.width) / 2;
-                        const proxCenterY = parseFloat(p.style.top) + parseFloat(p.style.height) / 2;
-                        const playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
-                        const playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
-                        const distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
-                        if (distance > 200) {
-                            p.style.opacity = 0;
-                        } else {
-                            p.style.opacity = 1;
-                        }
-                    }
-                });
-            }
             let pTime = 0;
             const f = 200;
             let size = 0;
@@ -52,25 +37,53 @@
                 pTime = currentTime;
                 const e = f * deltaTime;
                 if (useArrowKeys == "true") {
-                    if (keys[keybinds['arrow']['forward']]) pos.y -= e;
-                    if (keys[keybinds['arrow']['backward']]) pos.y += e;
-                    if (keys[keybinds['arrow']['right']]) pos.x += e;
-                    if (keys[keybinds['arrow']['left']]) pos.x -= e;
+                    let nextPos = { x: pos.x, y: pos.y };
+                    if (keys[keybinds['arrow']['left']]) nextPos.x -= e;
+                    if (keys[keybinds['arrow']['right']]) nextPos.x += e;
+                    if (keys[keybinds['arrow']['forward']]) nextPos.y -= e;
+                    if (keys[keybinds['arrow']['backward']]) nextPos.y += e;
+                    let isColliding = collide.some(c => {
+                        let objectRect = c.getBoundingClientRect();
+                        return (
+                            nextPos.x < objectRect.right &&
+                            nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
+                            nextPos.y < objectRect.bottom &&
+                            nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
+                        );
+                    });
+                    if (!isColliding) {
+                        pos.x = nextPos.x;
+                        pos.y = nextPos.y;
+                    }
                 } else if (useArrowKeys == "false") {
-                    if (keys[keybinds['forward']]) pos.y -= e;
-                    if (keys[keybinds['backward']]) pos.y += e;
-                    if (keys[keybinds['right']]) pos.x += e;
-                    if (keys[keybinds['left']]) pos.x -= e;
+                    let nextPos = { x: pos.x, y: pos.y };
+                    if (keys[keybinds['left']]) nextPos.x -= e;
+                    if (keys[keybinds['right']]) nextPos.x += e;
+                    if (keys[keybinds['forward']]) nextPos.y -= e;
+                    if (keys[keybinds['backward']]) nextPos.y += e;
+                    let isColliding = collide.some(c => {
+                        let objectRect = c.getBoundingClientRect();
+                        return (
+                            nextPos.x < objectRect.right &&
+                            nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
+                            nextPos.y < objectRect.bottom &&
+                            nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
+                        );
+                    });
+                    if (!isColliding) {
+                        pos.x = nextPos.x;
+                        pos.y = nextPos.y;
+                    }
                 }
                 if (keys[keybinds['use']]) {
                     let closestProx = null;
                     let closestDistance = Infinity;
                     prox.forEach(p => {
-                        const proxCenterX = parseFloat(p.style.left) + parseFloat(p.style.width) / 2;
-                        const proxCenterY = parseFloat(p.style.top) + parseFloat(p.style.height) / 2;
-                        const playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
-                        const playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
-                        const distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
+                        let proxCenterX = parseFloat(p.style.left) + parseFloat(p.style.width) / 2;
+                        let proxCenterY = parseFloat(p.style.top) + parseFloat(p.style.height) / 2;
+                        let playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
+                        let playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
+                        let distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
                         if (distance < closestDistance) {
                             closestDistance = distance;
                             closestProx = p;
@@ -84,8 +97,14 @@
                             if (closestProx.parentNode) {
                                 closestProx.style.transform = "scale(0)";
                                 setTimeout(() => {
+                                    if (closestProx.id == "removeBlocks") {
+                                        collide.forEach(c => {
+                                            console.log(c);
+                                            c.style.transform = "scale(0)";
+                                        });
+                                    }
                                     closestProx.parentNode.removeChild(closestProx);
-                                }, 1000);
+                                }, 250);
                             }
                         }
                     }
@@ -98,9 +117,16 @@
                     });
                 }
                 if (keys[keybinds['use2']]) {
-                    prox.push(createProx(pos.x, pos.y, keybinds['use'], "createdProx"));
+                    prox.push(createProx(pos.x - 50, pos.y - 12.5, keybinds['use'], "removeBlocks", "remove all blocks", 19));
+                    delete keys[keybinds['use2']];
                 }
-                renderProx();
+                if (keys[keybinds['use3']]) {
+                    console.log("created object");
+                    collide.push(createObject(pos.x + 50, pos.y + 50, 100, 100, (0, 0, 0), Math.random(0, 1)));
+                    delete keys[keybinds['use3']];
+                }
+                renderProx(prox, pos, mainPlayer);
+                renderObjects(document);
                 if (pos.x < 0) pos.x = 0;
                 if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
                 if (pos.y < 0) pos.y = 0;
