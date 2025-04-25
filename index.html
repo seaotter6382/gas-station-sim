@@ -36,7 +36,6 @@
                         const playerCenterX = pos.x + parseFloat(mainPlayer.style.width) / 2;
                         const playerCenterY = pos.y + parseFloat(mainPlayer.style.height) / 2;
                         const distance = Math.sqrt(Math.pow(proxCenterX - playerCenterX, 2) + Math.pow(proxCenterY - playerCenterY, 2));
-                        console.log(distance);
                         if (distance > 200) {
                             p.style.opacity = 0;
                         } else {
@@ -64,7 +63,6 @@
                     if (keys[keybinds['left']]) pos.x -= e;
                 }
                 if (keys[keybinds['use']]) {
-                    console.log("pressed");
                     let closestProx = null;
                     let closestDistance = Infinity;
                     prox.forEach(p => {
@@ -78,14 +76,16 @@
                             closestProx = p;
                         }
                     });
-                    if (closestProx) {
-                        console.log(closestProx);
+                    if (closestProx && closestDistance < 200) {
                         closestProx.querySelector("#miniCircle").style.transform = "scale(" + size + ")";
                         size += e / 50;
                         if (size > 5) {
                             prox = prox.filter(p => p !== closestProx);
                             if (closestProx.parentNode) {
-                                closestProx.parentNode.removeChild(closestProx);
+                                closestProx.style.transform = "scale(0)";
+                                setTimeout(() => {
+                                    closestProx.parentNode.removeChild(closestProx);
+                                }, 1000);
                             }
                         }
                     }
