@@ -3,18 +3,22 @@
         <style>
             #userPlayer { height: 50px; width: 50px; background-color: blue; position: absolute; z-index: 1; border-radius: 2px; }
             .font { font-family: "monospace", sans-serif; }
+            #test { background-color: rgb(163, 87, 0);}
         </style>
     </head>
     <body>
         <div id="userPlayer"></div>
         <script type="module">
             import { getKeybinds } from "./lib/fetch/fetchKeybinds.js";
+            import { getColors } from "./lib/fetch/fetchColors.js";
             import { createProx } from "./lib/prox/createProx.js";
             import { renderProx } from "./lib/prox/renderProx.js";
             import { createObject } from "./lib/objects/createObject.js";
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
+            let colors = await getColors();
+            console.log(colors);
             let useArrowKeys = keybinds['useArrow'];
             let keys = {};
             let prox = [];
@@ -29,6 +33,22 @@
             document.addEventListener("keyup", (event) => {
                 delete keys[event.key];
             });
+            window.addEventListener("resize", () => {
+                location.reload();
+            });
+            document.body.style.backgroundColor = colors["background"];
+
+            // base blocks
+            collide.push(createObject(-90, 0, 10000, 100, colors["outerWall"], "left wall", 1));
+            collide.push(createObject(window.innerWidth - 10, 0, 10000, 100, colors["outerWall"], "right wall", 1));
+            collide.push(createObject(0, -90, 100, 100000, colors["outerWall"], "top wall", 1));
+            collide.push(createObject(0, window.innerHeight - 10, 100, 100000, colors["outerWall"], "bottom wall", 1));
+
+            // interactable blocks
+            collide.push(createObject(0, 200, 100, 100, colors['interactables']['fridge'], "fridge1", 1));
+            prox.push(createProx(0, 212.5, keybinds['use'], "fridge1Prox", "use fridge", 20));
+            collide.push(createObject(100, 200, 100, 10, colors['interactables']['fridge'], "fridge1Door", 1));
+
             let pTime = 0;
             const f = 200;
             let size = 0;
@@ -93,18 +113,24 @@
                         closestProx.querySelector("#miniCircle").style.transform = "scale(" + size + ")";
                         size += e / 50;
                         if (size > 5) {
-                            prox = prox.filter(p => p !== closestProx);
                             if (closestProx.parentNode) {
                                 closestProx.style.transform = "scale(0)";
-                                setTimeout(() => {
-                                    if (closestProx.id == "removeBlocks") {
-                                        collide.forEach(c => {
-                                            console.log(c);
-                                            c.style.transform = "scale(0)";
-                                        });
+                                if (closestProx.id == "fridge1Prox") {
+                                    let fridgeDoor = document.querySelector("#fridge1Door");
+                                    let hasRotated = false;
+                                    if (hasRotated == false) {
+                                        hasRotated = true;
+                                        if (fridgeDoor.style.transform === "rotate(90deg)") {
+                                            fridgeDoor.style.transform = "rotate(0deg)";
+                                        } else {
+                                            fridgeDoor.style.transform = "rotate(90deg)";
+                                        }
                                     }
-                                    closestProx.parentNode.removeChild(closestProx);
-                                }, 250);
+                                    console.log(fridgeDoor);
+                                }
+                                setTimeout(() => {
+                                    closestProx.style.transform = "scale(1)";
+                                }, 500);
                             }
                         }
                     }
@@ -127,6 +153,8 @@
                 }
                 renderProx(prox, pos, mainPlayer);
                 renderObjects(document);
+                document.querySelector("#fridge1Door").style.transformOrigin = "bottom";
+                document.querySelector("#fridge1Door").style.transition = "0.5s ease";
                 if (pos.x < 0) pos.x = 0;
                 if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
                 if (pos.y < 0) pos.y = 0;
