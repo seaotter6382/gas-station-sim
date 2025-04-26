@@ -16,7 +16,7 @@
             <div id="moneyValue" class="font">
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                     <p id="mainMoney">50.00$</p>
-                    <p id="powerUsage">-0.00$/sec</p>
+                    <p id="powerUsage">0.00$/sec</p>
                     <p id="isOpen">closed</p>
                 </div>
             </div>
@@ -29,6 +29,8 @@
             import { renderProx } from "./lib/prox/renderProx.js";
             import { createObject } from "./lib/objects/createObject.js";
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
+            import { createNPC } from "./lib/npc/spawnNPC.js";
+            import { moveNPC } from "./lib/npc/moveNPC.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let colors = await getColors();
@@ -42,6 +44,7 @@
             let useArrowKeys = keybinds['useArrow'];
             let keys = {};
             let prox = [];
+            let npc = [];
             let pos = {x: window.innerWidth / 2 - 25, y: window.innerHeight / 2 - 25};
             let speed = 2;
             let mainPlayer = document.getElementById("userPlayer");
@@ -222,6 +225,9 @@
                 if (document.querySelector("#door1").style.transform == "rotate(-90deg)") {
                     document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.01;
+                    if (Math.random() < 0.005) {
+                        npc.push(createNPC(window.innerWidth / 2 - 25, window.innerHeight - 100, Math.random()));
+                    }
                 } else {
                     document.getElementById("isOpen").innerHTML = "closed";
                 }
@@ -231,12 +237,21 @@
                 if (pos.y > window.innerHeight - 50) pos.y = window.innerHeight - 50;
                 mainPlayer.style.left = pos.x + "px";
                 mainPlayer.style.top = pos.y + "px";
+                if (currentMoney <= 0) {
+                    alert("ur broke kid press ok");
+                    location.reload();
+                }
+                moveNPC(npc, e);
                 requestAnimationFrame(gameLoop);
             }
             setInterval(() => {
                 currentMoney -= powerUsage;
                 document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
-                document.getElementById("powerUsage").innerHTML = "-" + powerUsage.toFixed(2) + "$/sec";
+                if (powerUsage == 0) {
+                    document.getElementById("powerUsage").innerHTML = "0.00$/sec";
+                } else {
+                    document.getElementById("powerUsage").innerHTML = "-" + powerUsage.toFixed(2) + "$/sec";
+                }
             }, 1000);
             gameLoop();
         </script>
