@@ -1,16 +1,28 @@
 <html>
     <head>
         <style>
+            html { overflow: hidden; }
             #userPlayer { height: 50px; width: 50px; background-color: blue; position: absolute; z-index: 1; border-radius: 2px; }
             .font { font-family: "monospace", sans-serif; }
-            #test { background-color: rgb(163, 87, 0);}
+            #moneyValue { left: 10px; bottom: 10px; background-color: rgba(0, 131, 17, 0.5); padding: 25px; position: absolute; z-index: 10; font-size: 30px; }
+            #mainMoney { margin: 0px; font-size: 25px; }
+            #powerUsage { margin: 0px; font-size: 25px; }
         </style>
     </head>
     <body>
         <div id="userPlayer"></div>
+        <div id="mainUI">
+            <div id="moneyValue" class="font">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <p id="mainMoney">50$</p>
+                    <p id="powerUsage">-0.72$</p>
+                </div>
+            </div>
+        </div>
         <script type="module">
             import { getKeybinds } from "./lib/fetch/fetchKeybinds.js";
             import { getColors } from "./lib/fetch/fetchColors.js";
+            import { getVars } from "./lib/fetch/fetchVars.js";
             import { createProx } from "./lib/prox/createProx.js";
             import { renderProx } from "./lib/prox/renderProx.js";
             import { createObject } from "./lib/objects/createObject.js";
@@ -19,6 +31,12 @@
             console.log(keybinds);
             let colors = await getColors();
             console.log(colors);
+            let vars = await getVars();
+            console.log(vars);
+            let startMoney = vars['startMoney'];
+            document.querySelector("#mainMoney").innerHTML = startMoney + "$";
+            let powerUsage = 0;
+            let currentMoney = startMoney;
             let useArrowKeys = keybinds['useArrow'];
             let keys = {};
             let prox = [];
@@ -45,14 +63,24 @@
             collide.push(createObject(0, window.innerHeight - 10, 100, 100000, colors["outerWall"], "bottom wall", 1));
 
             // interactable blocks
-            collide.push(createObject(0, 200, 100, 100, colors['interactables']['fridge'], "fridge1", 1));
-            prox.push(createProx(0, 212.5, keybinds['use'], "fridge1Prox", "use fridge", 20));
-            collide.push(createObject(100, 200, 100, 10, colors['interactables']['fridge'], "fridge1Door", 1));
+            // fridges
+            collide.push(createObject(0, window.innerHeight / 4 - 50, 100, 100, colors['interactables']['fridge'], "fridge1", 1));
+            prox.push(createProx(0, window.innerHeight / 4 - 37.5, keybinds['use'], "fridge1Prox", "use fridge", 20));
+            collide.push(createObject(90, window.innerHeight / 4 - 50, 100, 10, colors['interactables']['fridge'], "fridge1Door", 1));
+
+            collide.push(createObject(0, window.innerHeight / 2 - 50, 100, 100, colors['interactables']['fridge'], "fridge2", 1));
+            prox.push(createProx(0, window.innerHeight / 2 - 37.5, keybinds['use'], "fridge2Prox", "use fridge", 20));
+            collide.push(createObject(90, window.innerHeight / 2 - 50, 100, 10, colors['interactables']['fridge'], "fridge2Door", 1));
+
+            collide.push(createObject(0, window.innerHeight / 4 * 3 - 50, 100, 100, colors['interactables']['fridge'], "fridge3", 1));
+            prox.push(createProx(0, window.innerHeight / 4 * 3 - 37.5, keybinds['use'], "fridge3Prox", "use fridge", 20));
+            collide.push(createObject(90, window.innerHeight / 4 * 3 - 50, 100, 10, colors['interactables']['fridge'], "fridge3Door", 1));
 
             let pTime = 0;
             const f = 200;
             let size = 0;
             function gameLoop(currentTime) {
+                powerUsage = 0;
                 let deltaTime = (currentTime - pTime) / 1000;
                 pTime = currentTime;
                 const e = f * deltaTime;
@@ -115,16 +143,20 @@
                         if (size > 5) {
                             if (closestProx.parentNode) {
                                 closestProx.style.transform = "scale(0)";
-                                if (closestProx.id == "fridge1Prox") {
-                                    let fridgeDoor = document.querySelector("#fridge1Door");
-                                    let hasRotated = false;
-                                    if (hasRotated == false) {
-                                        hasRotated = true;
-                                        if (fridgeDoor.style.transform === "rotate(90deg)") {
-                                            fridgeDoor.style.transform = "rotate(0deg)";
-                                        } else {
-                                            fridgeDoor.style.transform = "rotate(90deg)";
-                                        }
+                                if (
+                                    closestProx.id === "fridge1Prox" || 
+                                    closestProx.id === "fridge2Prox" || 
+                                    closestProx.id === "fridge3Prox"
+                                ) {
+                                    let fridgeDoor = document.querySelector(
+                                        closestProx.id === "fridge1Prox" ? "#fridge1Door" :
+                                        closestProx.id === "fridge2Prox" ? "#fridge2Door" :
+                                        "#fridge3Door"
+                                    );
+                                    if (fridgeDoor.style.transform === "rotate(90deg)") {
+                                        fridgeDoor.style.transform = "rotate(0deg)";
+                                    } else {
+                                        fridgeDoor.style.transform = "rotate(90deg)";
                                     }
                                     console.log(fridgeDoor);
                                 }
@@ -132,6 +164,7 @@
                                     closestProx.style.transform = "scale(1)";
                                 }, 500);
                             }
+                            size = 0;
                         }
                     }
                 } else {
@@ -155,14 +188,33 @@
                 renderObjects(document);
                 document.querySelector("#fridge1Door").style.transformOrigin = "bottom";
                 document.querySelector("#fridge1Door").style.transition = "0.5s ease";
+                document.querySelector("#fridge2Door").style.transformOrigin = "bottom";
+                document.querySelector("#fridge2Door").style.transition = "0.5s ease";
+                document.querySelector("#fridge3Door").style.transformOrigin = "bottom";
+                document.querySelector("#fridge3Door").style.transition = "0.5s ease";
+                if (document.querySelector("#fridge1Door").style.transform == "rotate(90deg)") {
+                    powerUsage += 0.04;
+                }
+                if (document.querySelector("#fridge2Door").style.transform == "rotate(90deg)") {
+                    powerUsage += 0.04;
+                }
+                if (document.querySelector("#fridge3Door").style.transform == "rotate(90deg)") {
+                    powerUsage += 0.04;
+                }
+                powerUsage += 0.01;
                 if (pos.x < 0) pos.x = 0;
                 if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
                 if (pos.y < 0) pos.y = 0;
                 if (pos.y > window.innerHeight - 50) pos.y = window.innerHeight - 50;
                 mainPlayer.style.left = pos.x + "px";
                 mainPlayer.style.top = pos.y + "px";
+                document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
+                document.getElementById("powerUsage").innerHTML = powerUsage.toFixed(2) + "$/sec";
                 requestAnimationFrame(gameLoop);
             }
+            setInterval(() => {
+                currentMoney -= powerUsage;
+            }, 1000);
             gameLoop();
         </script>
     </body>
