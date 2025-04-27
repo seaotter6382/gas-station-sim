@@ -10,7 +10,7 @@
             #isOpen { margin: 0px; font-size: 25px; }
             #computerScreen { position: absolute; z-index: 10; width: 95%; height: 95%; left: 2.5%; top: 2.5%; background-color: rgba(0, 0, 0, 0.75); border-radius: 10px; transition: 0.5s ease; }
             .computerChild { color: white; font-size: 30px; margin: 5px; }
-            #computerClose { cursor: pointer; position: absolute; right: -5px; top: -5px; padding: 10px 15px 10px 15px; background-color: red; border-radius: 5px; font-size: 30px;}
+            #computerClose { cursor: pointer; position: absolute; right: -5px; top: -5px; padding: 10px 15px 10px 15px; background-color: red; border-radius: 5px; font-size: 30px; }
         </style>
     </head>
     <body>
@@ -218,15 +218,6 @@
                             p.querySelector("#miniCircle").style.transform = "scale(0)";
                         }
                     });
-                }
-                if (keys[keybinds['use2']]) {
-                    prox.push(createProx(pos.x - 50, pos.y - 12.5, keybinds['use'], "removeBlocks", "remove all blocks", 19));
-                    delete keys[keybinds['use2']];
-                }
-                if (keys[keybinds['use3']]) {
-                    console.log("created object");
-                    collide.push(createObject(pos.x + 50, pos.y + 50, 100, 100, (0, 0, 0), Math.random(0, 1)));
-                    delete keys[keybinds['use3']];
                 }
                 renderProx(prox, pos, mainPlayer);
                 renderObjects(document);
