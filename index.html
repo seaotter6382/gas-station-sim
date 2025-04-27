@@ -40,7 +40,7 @@
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
             import { createNPC } from "./lib/npc/spawnNPC.js";
             import { moveNPC } from "./lib/npc/moveNPC.js";
-            import { createList } from "./lib/computer/createList.js";
+            import { createList, getMoney } from "./lib/computer/createList.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let colors = await getColors();
@@ -243,17 +243,14 @@
                 if (document.querySelector("#door1").style.transform == "rotate(-90deg)") {
                     document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.01;
-                    if (Math.random() < 0.0025) {
+                    if (Math.random() < 0.005) {
                         npc.push(createNPC(window.innerWidth / 2 - 25, window.innerHeight - 100, Math.random()));
                     }
                 } else {
                     document.getElementById("isOpen").innerHTML = "closed";
                 }
                 if (document.querySelector("#computerScreen").style.transform == "scale(1)") {
-                    document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.05;
-                } else {
-                    document.getElementById("isOpen").innerHTML = "closed";
                 }
                 if (pos.x < 0) pos.x = 0;
                 if (pos.x > window.innerWidth - 50) pos.x = window.innerWidth - 50;
@@ -262,7 +259,7 @@
                 mainPlayer.style.left = pos.x + "px";
                 mainPlayer.style.top = pos.y + "px";
                 if (currentMoney <= 0) {
-                    alert("ur broke kid press ok");
+                    alert("ur broke kid press ok or refresh to restart");
                     location.reload();
                 }
                 moveNPC(npc, e);
@@ -270,13 +267,14 @@
             }
             setInterval(() => {
                 currentMoney -= powerUsage;
+                currentMoney -= getMoney();
+                createList(currentItems, currentMoney);
                 document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
                 if (powerUsage == 0) {
                     document.getElementById("powerUsage").innerHTML = "0.00$/sec";
                 } else {
                     document.getElementById("powerUsage").innerHTML = "-" + powerUsage.toFixed(2) + "$/sec";
                 }
-                createList(currentItems);
             }, 1000);
             document.querySelector("#computerClose").addEventListener("click", () => {
                 document.querySelector("#computerScreen").style.transform = "scale(0)";
