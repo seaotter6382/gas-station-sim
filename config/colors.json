@@ -5,6 +5,10 @@
     "interactables" : {
         "fridge" : "rgba(100, 100, 100, 1)",
         "cashRegister" : "rgba(255, 255, 255, 1)",
-        "door" : "rgba(100, 100, 100, 1)"
+        "door" : "rgba(100, 100, 100, 1)",
+        "computer" : {
+            "main" : "rgba(150, 150, 150, 1)",
+            "light" : "rgba(255, 255, 255, 1)"
+        }
     }
 }

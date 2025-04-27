@@ -8,6 +8,9 @@
             #mainMoney { margin: 0px; font-size: 25px; }
             #powerUsage { margin: 0px; font-size: 25px; }
             #isOpen { margin: 0px; font-size: 25px; }
+            #computerScreen { position: absolute; z-index: 10; width: 95%; height: 95%; left: 2.5%; top: 2.5%; background-color: rgba(0, 0, 0, 0.75); border-radius: 10px; transition: 0.5s ease; }
+            .computerChild { color: white; font-size: 30px; margin: 5px; }
+            #computerClose { cursor: pointer; position: absolute; right: -5px; top: -5px; padding: 10px 15px 10px 15px; background-color: red; border-radius: 5px; font-size: 30px;}
         </style>
     </head>
     <body>
@@ -20,23 +23,33 @@
                     <p id="isOpen">closed</p>
                 </div>
             </div>
+            <div id="computerScreen" style="transform: scale(0);">
+                <p id="computerTitle" class="computerChild font" style="text-align: center; margin: 0 auto; width: fit-content;">Item Inventory</p>
+                <div id="computerItem"></div>
+                <div id="computerClose" class="font">X</div>
+            </div>
         </div>
         <script type="module">
             import { getKeybinds } from "./lib/fetch/fetchKeybinds.js";
             import { getColors } from "./lib/fetch/fetchColors.js";
             import { getVars } from "./lib/fetch/fetchVars.js";
+            import { getItems } from "./lib/fetch/fetchItems.js";
             import { createProx } from "./lib/prox/createProx.js";
             import { renderProx } from "./lib/prox/renderProx.js";
             import { createObject } from "./lib/objects/createObject.js";
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
             import { createNPC } from "./lib/npc/spawnNPC.js";
             import { moveNPC } from "./lib/npc/moveNPC.js";
+            import { createList } from "./lib/computer/createList.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let colors = await getColors();
             console.log(colors);
             let vars = await getVars();
             console.log(vars);
+            let startItems = await getItems();
+            console.log(startItems);
+            let currentItems = startItems;
             let startMoney = vars['startMoney'];
             document.querySelector("#mainMoney").innerHTML = startMoney.toFixed(2) + "$";
             let powerUsage = 0;
@@ -90,6 +103,11 @@
             collide.push(createObject(window.innerWidth / 2, window.innerHeight - 20, 20, 100, colors["interactables"]["door"], "door2", 1));
             prox.push(createProx(window.innerWidth / 2 - 75, window.innerHeight - 100, keybinds['use'], "door1Prox", "use door", 20));
 
+            //computer
+            collide.push(createObject(window.innerWidth - 260, 10, 50, 100, colors["interactables"]["computer"]['main'], "computer", 1));
+            collide.push(createObject(window.innerWidth - 255, 15, 40, 90, colors["interactables"]["computer"]['light'], "computerLight", 2));
+            prox.push(createProx(window.innerWidth - 280, 10, keybinds['use'], "computerProx", "use computer", 20));
+
             let pTime = 0;
             const f = 200;
             let size = 0;
@@ -98,43 +116,45 @@
                 let deltaTime = (currentTime - pTime) / 1000;
                 pTime = currentTime;
                 const e = f * deltaTime;
-                if (useArrowKeys == "true") {
-                    let nextPos = { x: pos.x, y: pos.y };
-                    if (keys[keybinds['arrow']['left']]) nextPos.x -= e;
-                    if (keys[keybinds['arrow']['right']]) nextPos.x += e;
-                    if (keys[keybinds['arrow']['forward']]) nextPos.y -= e;
-                    if (keys[keybinds['arrow']['backward']]) nextPos.y += e;
-                    let isColliding = collide.some(c => {
-                        let objectRect = c.getBoundingClientRect();
-                        return (
-                            nextPos.x < objectRect.right &&
-                            nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
-                            nextPos.y < objectRect.bottom &&
-                            nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
-                        );
-                    });
-                    if (!isColliding) {
-                        pos.x = nextPos.x;
-                        pos.y = nextPos.y;
-                    }
-                } else if (useArrowKeys == "false") {
-                    let nextPos = { x: pos.x, y: pos.y };
-                    if (keys[keybinds['left']]) nextPos.x -= e;
-                    if (keys[keybinds['right']]) nextPos.x += e;
-                    if (keys[keybinds['forward']]) nextPos.y -= e;
-                    if (keys[keybinds['backward']]) nextPos.y += e;
-                    let isColliding = collide.some(c => {
-                        let objectRect = c.getBoundingClientRect();
-                        return (
-                            nextPos.x < objectRect.right &&
-                            nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
-                            nextPos.y < objectRect.bottom &&
-                            nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
-                        );
-                    });
-                    if (!isColliding) {
-                        pos.x = nextPos.x;
-                        pos.y = nextPos.y;
+                if (document.getElementById("computerScreen").style.transform == "scale(0)") {
+                    if (useArrowKeys == "true") {
+                        let nextPos = { x: pos.x, y: pos.y };
+                        if (keys[keybinds['arrow']['left']]) nextPos.x -= e;
+                        if (keys[keybinds['arrow']['right']]) nextPos.x += e;
+                        if (keys[keybinds['arrow']['forward']]) nextPos.y -= e;
+                        if (keys[keybinds['arrow']['backward']]) nextPos.y += e;
+                        let isColliding = collide.some(c => {
+                            let objectRect = c.getBoundingClientRect();
+                            return (
+                                nextPos.x < objectRect.right &&
+                                nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
+                                nextPos.y < objectRect.bottom &&
+                                nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
+                            );
+                        });
+                        if (!isColliding) {
+                            pos.x = nextPos.x;
+                            pos.y = nextPos.y;
+                        }
+                    } else if (useArrowKeys == "false") {
+                        let nextPos = { x: pos.x, y: pos.y };
+                        if (keys[keybinds['left']]) nextPos.x -= e;
+                        if (keys[keybinds['right']]) nextPos.x += e;
+                        if (keys[keybinds['forward']]) nextPos.y -= e;
+                        if (keys[keybinds['backward']]) nextPos.y += e;
+                        let isColliding = collide.some(c => {
+                            let objectRect = c.getBoundingClientRect();
+                            return (
+                                nextPos.x < objectRect.right &&
+                                nextPos.x + parseFloat(mainPlayer.style.width) > objectRect.left &&
+                                nextPos.y < objectRect.bottom &&
+                                nextPos.y + parseFloat(mainPlayer.style.height) > objectRect.top
+                            );
+                        });
+                        if (!isColliding) {
+                            pos.x = nextPos.x;
+                            pos.y = nextPos.y;
+                        }
                     }
                 }
                 if (keys[keybinds['use']]) {
@@ -175,6 +195,13 @@
                                     } else {
                                         door1.style.transform = "rotate(-90deg)";
                                         door2.style.transform = "rotate(90deg)";
+                                    }
+                                }
+                                if (closestProx.id == "computerProx") {
+                                    if (document.querySelector("#computerScreen").style.transform == "scale(0)") {
+                                        document.querySelector("#computerScreen").style.transform = "scale(1)";
+                                    } else {
+                                        document.querySelector("#computerScreen").style.transform = "scale(0)";
                                     }
                                 }
                                 setTimeout(() => {
@@ -225,9 +252,15 @@
                 if (document.querySelector("#door1").style.transform == "rotate(-90deg)") {
                     document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.01;
-                    if (Math.random() < 0.005) {
+                    if (Math.random() < 0.0025) {
                         npc.push(createNPC(window.innerWidth / 2 - 25, window.innerHeight - 100, Math.random()));
                     }
+                } else {
+                    document.getElementById("isOpen").innerHTML = "closed";
+                }
+                if (document.querySelector("#computerScreen").style.transform == "scale(1)") {
+                    document.getElementById("isOpen").innerHTML = "open";
+                    powerUsage += 0.05;
                 } else {
                     document.getElementById("isOpen").innerHTML = "closed";
                 }
@@ -252,7 +285,11 @@
                 } else {
                     document.getElementById("powerUsage").innerHTML = "-" + powerUsage.toFixed(2) + "$/sec";
                 }
+                createList(currentItems);
             }, 1000);
+            document.querySelector("#computerClose").addEventListener("click", () => {
+                document.querySelector("#computerScreen").style.transform = "scale(0)";
+            });
             gameLoop();
         </script>
     </body>

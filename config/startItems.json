@@ -1,0 +1,27 @@
+{
+    "tacos": {
+        "name": "Tacos",
+        "price": 3.99,
+        "ammount": 5
+    },
+    "burgers": {
+        "name": "Burgers",
+        "price": 4.99,
+        "ammount": 5
+    },
+    "candy": {
+        "name": "Candy",
+        "price": 1.99,
+        "ammount": 5
+    },
+    "waffle": {
+        "name": "Waffle",
+        "price": 6.99,
+        "ammount": 5
+    },
+    "soda": {
+        "name": "Soda",
+        "price": 2.99,
+        "ammount": 5
+    }
+}
