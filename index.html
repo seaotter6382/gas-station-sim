@@ -39,8 +39,9 @@
             import { createObject } from "./lib/objects/createObject.js";
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
             import { createNPC } from "./lib/npc/spawnNPC.js";
-            import { moveNPC } from "./lib/npc/moveNPC.js";
+            import { moveNPC, getMinusItems } from "./lib/npc/moveNPC.js";
             import { createList, getMoney } from "./lib/computer/createList.js";
+            import { removeItem } from "./lib/deleteItem.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let colors = await getColors();
@@ -107,6 +108,15 @@
             collide.push(createObject(window.innerWidth - 260, 10, 50, 100, colors["interactables"]["computer"]['main'], "computer", 1));
             collide.push(createObject(window.innerWidth - 255, 15, 40, 90, colors["interactables"]["computer"]['light'], "computerLight", 2));
             prox.push(createProx(window.innerWidth - 280, 10, keybinds['use'], "computerProx", "use computer", 20));
+
+            function removeStorage() {
+                let randomItemIndex = Math.floor(Math.random() * Object.keys(currentItems).length);
+                let randomItem = currentItems[Object.keys(currentItems)[randomItemIndex]];
+                if (randomItem['ammount'] > 0) {
+                    randomItem['ammount'] -= 1;
+                    currentMoney += randomItem['sellPrice'];
+                }
+            }
 
             let pTime = 0;
             const f = 200;
@@ -243,7 +253,7 @@
                 if (document.querySelector("#door1").style.transform == "rotate(-90deg)") {
                     document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.01;
-                    if (Math.random() < 0.005) {
+                    if (Math.random() < 0.0025) {
                         npc.push(createNPC(window.innerWidth / 2 - 25, window.innerHeight - 100, Math.random()));
                     }
                 } else {
@@ -267,6 +277,9 @@
             }
             setInterval(() => {
                 currentMoney -= powerUsage;
+                if (getMinusItems()) {
+                    removeStorage();
+                }
                 currentMoney -= getMoney();
                 createList(currentItems, currentMoney);
                 document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
