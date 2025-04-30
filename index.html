@@ -40,7 +40,6 @@
             import { renderObjects, collide } from "./lib/objects/renderObject.js";
             import { createNPC } from "./lib/npc/spawnNPC.js";
             import { moveNPC, getMinusItems } from "./lib/npc/moveNPC.js";
-            import { createList, getMoney } from "./lib/computer/createList.js";
             import { plusCash } from "./lib/plusCashAnimation.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
@@ -108,6 +107,47 @@
             collide.push(createObject(window.innerWidth - 260, 10, 50, 100, colors["interactables"]["computer"]['main'], "computer", 1));
             collide.push(createObject(window.innerWidth - 255, 15, 40, 90, colors["interactables"]["computer"]['light'], "computerLight", 2));
             prox.push(createProx(window.innerWidth - 280, 10, keybinds['use'], "computerProx", "use computer", 20));
+
+            function createList(currentItems) {
+                document.querySelector("#computerItem").innerHTML = '';
+                document.querySelector("#computerItem").style.height = "95%";
+                document.querySelector("#computerItem").appendChild(document.createElement("br"))
+                for (let key in currentItems) {
+                    let newText = document.createElement("p");
+                    newText.textContent = currentItems[key]['name'] + " (" + currentItems[key]['ammount'] + ")";
+                    newText.className = "computerChild font";
+                    newText.style.textAlign = "left";
+                    newText.style.display = "inline-block";
+                    let ammountText = document.createElement("p");
+                    ammountText.textContent = currentItems[key]['sellPrice'] + "$";
+                    ammountText.className = "computerChild font";
+                    ammountText.style.textAlign = "right";
+                    ammountText.style.display = "inline-block";
+                    ammountText.style.position = "relative";
+                    ammountText.style.float = "right";
+                    let buyButton = document.createElement("button");
+                    buyButton.textContent = "+1 for " + currentItems[key]['buyPrice'] + "$";
+                    buyButton.className = "computerChild font";
+                    buyButton.style.backgroundColor = "green";
+                    buyButton.style.border = "black solid 2px";
+                    buyButton.style.borderRadius = "5px";
+                    buyButton.style.textAlign = "right";
+                    buyButton.style.display = "inline-block";
+                    buyButton.style.position = "absolute";
+                    buyButton.style.right = "100px";
+                    buyButton.style.color = "black";
+                    buyButton.addEventListener("click", (event) => {
+                        let minusMoney = currentItems[key]['buyPrice'];
+                        currentItems[key]['ammount'] += 1;
+                        currentMoney -= minusMoney;
+                        createList(currentItems, currentMoney);
+                    });
+                    document.querySelector("#computerItem").appendChild(newText);
+                    document.querySelector("#computerItem").appendChild(buyButton);
+                    document.querySelector("#computerItem").appendChild(ammountText);
+                    document.querySelector("#computerItem").appendChild(document.createElement("br"));
+                }
+            }
 
             function removeStorage() {
                 let randomItemIndex = Math.floor(Math.random() * Object.keys(currentItems).length);
@@ -287,8 +327,10 @@
                 if (getMinusItems()) {
                     removeStorage();
                 }
-                currentMoney -= getMoney();
                 if (currentMoney > lastMoney) {
+                    plusCash(currentMoney - lastMoney);
+                }
+                if (currentMoney < lastMoney && currentMoney - lastMoney < -1) {
                     plusCash(currentMoney - lastMoney);
                 }
                 createList(currentItems, currentMoney);
