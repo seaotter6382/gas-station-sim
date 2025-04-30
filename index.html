@@ -17,7 +17,7 @@
         <div id="userPlayer"></div>
         <div id="mainUI">
             <div id="moneyValue" class="font">
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div id="moneyUI" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                     <p id="mainMoney">50.00$</p>
                     <p id="powerUsage">0.00$/sec</p>
                     <p id="isOpen">closed</p>
@@ -41,7 +41,7 @@
             import { createNPC } from "./lib/npc/spawnNPC.js";
             import { moveNPC, getMinusItems } from "./lib/npc/moveNPC.js";
             import { createList, getMoney } from "./lib/computer/createList.js";
-            import { removeItem } from "./lib/deleteItem.js";
+            import { plusCash } from "./lib/plusCashAnimation.js";
             let keybinds = await getKeybinds();
             console.log(keybinds);
             let colors = await getColors();
@@ -272,22 +272,27 @@
                     alert("ur broke kid press ok or refresh to restart");
                     location.reload();
                 }
-                moveNPC(npc, e);
-                requestAnimationFrame(gameLoop);
-            }
-            setInterval(() => {
-                currentMoney -= powerUsage;
-                if (getMinusItems()) {
-                    removeStorage();
-                }
-                currentMoney -= getMoney();
-                createList(currentItems, currentMoney);
                 document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
                 if (powerUsage == 0) {
                     document.getElementById("powerUsage").innerHTML = "0.00$/sec";
                 } else {
                     document.getElementById("powerUsage").innerHTML = "-" + powerUsage.toFixed(2) + "$/sec";
                 }
+                moveNPC(npc, e);
+                requestAnimationFrame(gameLoop);
+            }
+            let lastMoney = currentMoney;
+            setInterval(() => {
+                currentMoney -= powerUsage;
+                if (getMinusItems()) {
+                    removeStorage();
+                }
+                currentMoney -= getMoney();
+                if (currentMoney > lastMoney) {
+                    plusCash(currentMoney - lastMoney);
+                }
+                createList(currentItems, currentMoney);
+                lastMoney = currentMoney;
             }, 1000);
             document.querySelector("#computerClose").addEventListener("click", () => {
                 document.querySelector("#computerScreen").style.transform = "scale(0)";
