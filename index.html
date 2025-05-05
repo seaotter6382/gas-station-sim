@@ -60,6 +60,7 @@
             let npc = [];
             let pos = {x: window.innerWidth / 2 - 25, y: window.innerHeight / 2 - 25};
             let speed = 2;
+            let openFridge = 0;
             let mainPlayer = document.getElementById("userPlayer");
             mainPlayer.style.width = "50px";
             mainPlayer.style.height = "50px";
@@ -163,6 +164,7 @@
             let size = 0;
             function gameLoop(currentTime) {
                 powerUsage = 0;
+                openFridge = 0;
                 let deltaTime = (currentTime - pTime) / 1000;
                 pTime = currentTime;
                 const e = f * deltaTime;
@@ -282,18 +284,21 @@
                 document.querySelector("#door2").style.transformOrigin = "right";
                 document.querySelector("#door2").style.transition = "0.5s ease";
                 if (document.querySelector("#fridge1Door").style.transform == "rotate(90deg)") {
-                    powerUsage += 0.04;
+                    powerUsage += 0.06;
+                    openFridge += 1;
                 }
                 if (document.querySelector("#fridge2Door").style.transform == "rotate(90deg)") {
-                    powerUsage += 0.04;
+                    powerUsage += 0.06;
+                    openFridge += 1;
                 }
                 if (document.querySelector("#fridge3Door").style.transform == "rotate(90deg)") {
-                    powerUsage += 0.04;
+                    powerUsage += 0.06;
+                    openFridge += 1;
                 }
                 if (document.querySelector("#door1").style.transform == "rotate(-90deg)") {
                     document.getElementById("isOpen").innerHTML = "open";
                     powerUsage += 0.01;
-                    if (Math.random() < 0.0025) {
+                    if (Math.random() < openFridge * 0.00083) {
                         npc.push(createNPC(window.innerWidth / 2 - 25, window.innerHeight - 100, Math.random()));
                     }
                 } else {
@@ -309,7 +314,7 @@
                 mainPlayer.style.left = pos.x + "px";
                 mainPlayer.style.top = pos.y + "px";
                 if (currentMoney <= 0) {
-                    alert("ur broke kid press ok or refresh to restart");
+                    alert("you ran outta cash so press ok to restart");
                     location.reload();
                 }
                 document.getElementById("mainMoney").innerHTML = currentMoney.toFixed(2) + "$";
