@@ -58,5 +58,11 @@
         "ammount": 0,
         "buyPrice": 8.99,
         "sellPrice": 9.99
+    },
+    "NewsPaper": {
+        "name": "Newspaper",
+        "ammount": 1,
+        "buyPrice": 1.99,
+        "sellPrice": 3.99
     }
 }
